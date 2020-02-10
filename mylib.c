@@ -1,0 +1,78 @@
+/********************************************************\           
+ * mylib.c --  Functions to assist in clean coding.     *
+ *                                                      *   
+ * Authors:    James Douglas, Paul Souter,              *
+ *             Ryan Swanepoel                           *   
+ *                                                      *   
+ * Purpose:    Allocate memory for objects and get words*
+ *             from a File stream                       *
+ *                                                      *
+\********************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <ctype.h>
+#include "mylib.h"
+/**
+ * allocate memory for an object of given size.
+ *
+ * @param s size of the object to allocate memory for.
+ */
+void *emalloc(size_t s){
+    void *result = malloc(s);
+    if(NULL == result){
+        fprintf(stderr, "memory allocation failed\n");
+    }
+    return result;
+}
+
+/**
+ * reallocate memory for an object of given size
+ *
+ * @param p original object.
+ * @param s new size of the object.
+ */
+void *erealloc(void *p, size_t s){
+    void *result = realloc(p, s);
+    if(NULL == result){
+        fprintf(stderr, "memory allocation failed\n");
+    }
+    return result;
+}
+
+/**
+ * get words one at a time from a given file stream and assign them to s.
+ * 
+ *
+ * @param s the character array to store the retrieved word.
+ * @param limit maximum size of the memory space for the word.
+ * @param stream where to retrieve words from.
+ *
+ * @return EOF if no more words are found in the stream.
+ * @return w the word retrieved.
+ */
+int getword(char *s, int limit, FILE *stream){
+    int c;
+    char *w = s;
+    assert(limit > 0 && s != NULL && stream != NULL);
+    /* skip to the start of the word */
+    while (!isalnum(c = getc(stream)) && EOF != c)
+        ;
+    if (EOF == c) {
+        return EOF;
+    } else if (--limit > 0) { /* reduce limit by 1 to allow for the \0 */
+        *w++ = tolower(c);
+    }
+    while (--limit > 0) {
+        if (isalnum(c = getc(stream))) {
+            *w++ = tolower(c);
+        } else if ('\'' == c) {
+            limit++;
+        } else {
+            break;
+        }
+    }
+    *w = '\0';
+    return w - s;
+}
